@@ -18,7 +18,12 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_CODE, CONF_COUNTRY, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.selector import CountrySelector
+from homeassistant.helpers.selector import (
+    CountrySelector,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
 
 from .const import CONF_LOGIN_DATA, DOMAIN
 
@@ -83,8 +88,16 @@ class AmazonDevicesConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_COUNTRY, default=self.hass.config.country
                     ): CountrySelector(),
-                    vol.Required(CONF_USERNAME): cv.string,
-                    vol.Required(CONF_PASSWORD): cv.string,
+                    vol.Required(CONF_USERNAME): TextSelector(
+                        TextSelectorConfig(
+                            type=TextSelectorType.EMAIL, autocomplete="off"
+                        )
+                    ),
+                    vol.Required(CONF_PASSWORD): TextSelector(
+                        TextSelectorConfig(
+                            type=TextSelectorType.PASSWORD, autocomplete="off"
+                        )
+                    ),
                     vol.Required(CONF_CODE): cv.string,
                 }
             ),
