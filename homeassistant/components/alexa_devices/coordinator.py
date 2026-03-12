@@ -13,7 +13,7 @@ from aiohttp import ClientSession
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.debounce import Debouncer
@@ -54,6 +54,8 @@ class AmazonDevicesCoordinator(DataUpdateCoordinator[dict[str, AmazonDevice]]):
             entry.data[CONF_PASSWORD],
             entry.data[CONF_LOGIN_DATA],
         )
+        self.api.on_dnd_event.append(self.handle_dnd_event)
+        self.api.on_dnd_event.freeze()
         self.previous_devices: set[str] = set()
 
     async def _async_update_data(self) -> dict[str, AmazonDevice]:
@@ -107,3 +109,10 @@ class AmazonDevicesCoordinator(DataUpdateCoordinator[dict[str, AmazonDevice]]):
                     device_id=device.id,
                     remove_config_entry_id=self.config_entry.entry_id,
                 )
+
+    @callback
+    def handle_dnd_event(self, serial: str, dnd: bool) -> None:
+        """Handle dnd event."""
+        if self.data and serial in self.data:
+            self.data[serial].sensors["dnd"].value = dnd
+            self.async_set_updated_data(self.data)
