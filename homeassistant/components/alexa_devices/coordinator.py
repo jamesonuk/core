@@ -258,7 +258,11 @@ class AmazonDevicesCoordinator(DataUpdateCoordinator[dict[str, AmazonDevice]]):
 
     async def _async_sync_on_device_list_change(self) -> None:
         """Sync per-device state on first refresh and after the device list changes."""
-        for sync_call in (self.sync_dnd_state, self.sync_media_state):
+        for sync_call in (
+            self.sync_dnd_state,
+            self.sync_media_state,
+            self.sync_notifications,
+        ):
             try:
                 await sync_call()
             except ConfigEntryNotReady as err:
