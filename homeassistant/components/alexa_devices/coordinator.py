@@ -16,6 +16,7 @@ from aioamazondevices.exceptions import (
 )
 from aioamazondevices.structures import (
     AmazonDevice,
+    AmazonDeviceSensor,
     AmazonListEvent,
     AmazonListEventType,
     AmazonListItem,
@@ -187,6 +188,9 @@ class AmazonDevicesCoordinator(DataUpdateCoordinator[dict[str, AmazonDevice]]):
         self._dnd_states: dict[str, bool] = {}
         self.api.on_dnd_event.append(self.dnd_event_handler)
         self.api.on_dnd_event.freeze()
+
+        self.api.on_sensor_event.append(self._on_sensor_event)
+        self.api.on_sensor_event.freeze()
 
     @override
     async def _async_update_data(self) -> dict[str, AmazonDevice]:
@@ -443,3 +447,16 @@ class AmazonDevicesCoordinator(DataUpdateCoordinator[dict[str, AmazonDevice]]):
     def dnd_states(self) -> Mapping[str, bool]:
         """DND states of devices."""
         return self._dnd_states
+
+    @property
+    def sensors(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Return current sensor state from the library store."""
+        return self.api.sensors
+
+    def device_sensor(self, serial_num: str, key: str) -> AmazonDeviceSensor | None:
+        """Return a single sensor, if present."""
+        return self.sensors.get(serial_num, {}).get(key)
+
+    async def _on_sensor_event(self) -> None:
+        # Store is mutated in place; just re-render without resetting the poll timer
+        self.async_update_listeners()
