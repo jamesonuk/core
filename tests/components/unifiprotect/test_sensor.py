@@ -13,7 +13,10 @@ from uiprotect.data import (
     Event,
     EventType,
     Light,
+    LightModeEnableType,
+    LightModeType,
     ModelType,
+    Permission,
     Sensor,
     WSAction,
 )
@@ -240,7 +243,13 @@ async def test_sensor_setup_sensor_none(
 ) -> None:
     """Test sensor entity setup for sensor devices with no sensors enabled."""
 
-    setup_public_sensor(ufp)
+    setup_public_sensor(
+        ufp,
+        motion_enabled=False,
+        temperature_enabled=False,
+        humidity_enabled=False,
+        light_enabled=False,
+    )
     await init_entry(hass, ufp, [sensor])
     assert_entity_counts(hass, Platform.SENSOR, 23, 14)
 
@@ -364,8 +373,9 @@ async def test_sensor_battery_refreshes_on_public_ws_reconnect(
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == STATE_UNAVAILABLE
 
-    # Value changes while the socket is down; the bootstrap holds the new value.
-    sensor_all.battery_status.percentage = 55
+    # Value changes while the socket is down; the fake rebuilds on lookup, so
+    # re-seed it with the new value.
+    setup_public_sensor(ufp, percentage=55)
     ufp.devices_ws_state_subscription(WebsocketState.CONNECTED)
     await hass.async_block_till_done()
 
@@ -816,6 +826,36 @@ async def test_sensor_light_last_motion_unavailable_without_public(
     await enable_entity(hass, ufp.entry.entry_id, entity_id)
 
     assert hass.states.get(entity_id).state == STATE_UNAVAILABLE
+
+
+@pytest.mark.parametrize(
+    ("mode", "enable_at", "expected"),
+    [
+        (LightModeType.MOTION, LightModeEnableType.ALWAYS, "motion"),
+        (LightModeType.MOTION, LightModeEnableType.DARK, "motion_dark"),
+        (LightModeType.WHEN_DARK, LightModeEnableType.DARK, "always"),
+        (LightModeType.MANUAL, LightModeEnableType.DARK, "off"),
+    ],
+)
+async def test_sensor_light_mode_mirror_public(
+    hass: HomeAssistant,
+    ufp: MockUFPFixture,
+    light: Light,
+    mode: LightModeType,
+    enable_at: LightModeEnableType,
+    expected: str,
+) -> None:
+    """The deprecated light mode mirror shows the public preset value."""
+    ufp.api.bootstrap.auth_user.all_permissions = [
+        Permission.unifi_dict_to_dict({"rawPermission": "light:read:*"})
+    ]
+    setup_public_light(ufp, light_mode=mode, light_mode_enable_at=enable_at)
+    await init_entry(hass, ufp, [light])
+
+    _, entity_id = await ids_from_device_description(
+        hass, Platform.SENSOR, light, get_sensor_by_key(LIGHT_SENSORS, "light_motion")
+    )
+    assert hass.states.get(entity_id).state == expected
 
 
 async def test_public_only_sensor_sense_end_to_end(
