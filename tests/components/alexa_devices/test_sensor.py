@@ -128,6 +128,31 @@ async def test_offline_device(
     assert state.state != STATE_UNAVAILABLE
 
 
+async def test_sensor_push_event(
+    hass: HomeAssistant,
+    mock_amazon_devices_client: AsyncMock,
+    mock_config_entry: MockConfigEntry,
+) -> None:
+    """Test sensor state is updated by a pushed sensor event."""
+
+    entity_id = "sensor.echo_test_temperature"
+
+    await setup_integration(hass, mock_config_entry)
+
+    assert (state := hass.states.get(entity_id))
+    assert state.state == "22.5"
+
+    mock_amazon_devices_client.sensors[TEST_DEVICE_1_SN]["temperature"].value = "23.5"
+
+    mock_amazon_devices_client.on_sensor_event.append.assert_called_once()
+    event_handler = mock_amazon_devices_client.on_sensor_event.append.call_args.args[0]
+    await event_handler()
+    await hass.async_block_till_done()
+
+    assert (state := hass.states.get(entity_id))
+    assert state.state == "23.5"
+
+
 async def test_device_removed_and_readded(
     hass: HomeAssistant,
     freezer: FrozenDateTimeFactory,
@@ -198,20 +223,18 @@ async def test_unit_of_measurement(
     mock_amazon_devices_client.get_devices_data.return_value[
         TEST_DEVICE_1_SN
     ].features = _sensor_feature(sensor)
-    mock_amazon_devices_client.sensors = {
-        TEST_DEVICE_1_SN: {
-            sensor: AmazonDeviceSensor(
-                name=sensor,
-                value=api_value,
-                error=False,
-                error_msg=None,
-                error_type=None,
-                scale=scale,
-                feature_name="sensor",
-                property_name="sensor",
-                instance="1",
-            )
-        }
+    mock_amazon_devices_client.sensors[TEST_DEVICE_1_SN] = {
+        sensor: AmazonDeviceSensor(
+            name=sensor,
+            value=api_value,
+            error=False,
+            error_msg=None,
+            error_type=None,
+            scale=scale,
+            feature_name="sensor",
+            property_name="sensor",
+            instance="1",
+        )
     }
 
     await setup_integration(hass, mock_config_entry)
@@ -257,7 +280,7 @@ async def test_sensor_unavailable(
     mock_amazon_devices_client.get_devices_data.return_value[
         TEST_DEVICE_1_SN
     ].features = _sensor_feature("illuminance")
-    mock_amazon_devices_client.sensors = {TEST_DEVICE_1_SN: sensors}
+    mock_amazon_devices_client.sensors[TEST_DEVICE_1_SN] = sensors
 
     await setup_integration(hass, mock_config_entry)
 

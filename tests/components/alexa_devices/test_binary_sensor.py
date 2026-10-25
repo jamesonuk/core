@@ -28,14 +28,14 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 from . import assert_device_removed_and_readded, setup_integration
 from .const import (
     TEST_DEVICE_1,
+    TEST_DEVICE_1_SENSORS,
     TEST_DEVICE_1_SN,
     TEST_DEVICE_2,
     TEST_DEVICE_2_SN,
-    TEST_SENSORS,
 )
 
 MOTION_ENTITY_ID = "binary_sensor.echo_test_motion"
-DETECTION_STATE = TEST_SENSORS[TEST_DEVICE_1_SN]["detectionState"]
+DETECTION_STATE = TEST_DEVICE_1_SENSORS["detectionState"]
 
 
 async def test_all_entities(

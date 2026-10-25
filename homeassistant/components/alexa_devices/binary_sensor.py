@@ -1,11 +1,9 @@
 """Support for binary sensors."""
 
-from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Final, override
 
 from aioamazondevices.const.sensors import SENSOR_STATE_OFF
-from aioamazondevices.structures import AmazonDevice
 
 from homeassistant.components.binary_sensor import (
     DOMAIN as BINARY_SENSOR_DOMAIN,
@@ -19,23 +17,21 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 import homeassistant.helpers.entity_registry as er
 
 from .const import DOMAIN, LOGGER
-from .coordinator import AmazonConfigEntry, AmazonDevicesCoordinator
-from .entity import AmazonEntity
+from .coordinator import AmazonConfigEntry
+from .entity import AmazonEntity, DescriptionFn
 from .utils import async_update_unique_id
 
 # Coordinator is used to centralize the data updates
 PARALLEL_UPDATES = 0
-
-type DescriptionFn = Callable[[AmazonDevice, str, AmazonDevicesCoordinator], bool]
 
 
 @dataclass(frozen=True, kw_only=True)
 class AmazonBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Alexa Devices binary sensor entity description."""
 
-    is_on_fn: DescriptionFn
-    is_supported_fn: DescriptionFn = lambda device, key, _: True
-    is_available_fn: DescriptionFn = lambda device, key, _: True
+    is_on_fn: DescriptionFn[bool]
+    is_supported_fn: DescriptionFn[bool] = lambda device, key, _: True
+    is_available_fn: DescriptionFn[bool] = lambda device, key, _: True
 
 
 BINARY_SENSORS: Final = (

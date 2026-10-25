@@ -34,7 +34,7 @@ async def async_get_config_entry_diagnostics(
     coordinator = entry.runtime_data
 
     devices: list[dict[str, dict[str, Any]]] = [
-        build_device_data(device, coordinator) for device in coordinator.data.values()
+        build_device_data(coordinator, device) for device in coordinator.data.values()
     ]
 
     return {
@@ -61,11 +61,11 @@ async def async_get_device_diagnostics(
         # Service device has no serial number and no matching coordinator data
         return {"service device": True}
 
-    return build_device_data(coordinator.data[device_entry.serial_number], coordinator)
+    return build_device_data(coordinator, coordinator.data[device_entry.serial_number])
 
 
 def build_device_data(
-    device: AmazonDevice, coordinator: AmazonDevicesCoordinator
+    coordinator: AmazonDevicesCoordinator, device: AmazonDevice
 ) -> dict[str, Any]:
     """Build device data for diagnostics."""
     return {
