@@ -19,6 +19,7 @@ from .const import (
     TEST_DEVICE_1,
     TEST_DEVICE_1_SN,
     TEST_PASSWORD,
+    TEST_SENSORS,
     TEST_USER_ID,
     TEST_USERNAME,
     TEST_VOCAL_RECORD_INITIAL,
@@ -67,6 +68,8 @@ def mock_amazon_devices_client() -> Generator[AsyncMock]:
         client.on_media_state_event = MagicMock()
         client.on_todo_event = MagicMock()
         client.on_dnd_event = MagicMock()
+        client.on_sensor_event = MagicMock()
+        client.sensors = deepcopy(TEST_SENSORS)
         dnd_event_handler: list[Callable[[dict[str, bool]], Awaitable[None]]] = []
         client.on_dnd_event.append.side_effect = dnd_event_handler.append
 

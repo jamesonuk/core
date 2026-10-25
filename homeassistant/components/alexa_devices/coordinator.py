@@ -457,6 +457,15 @@ class AmazonDevicesCoordinator(DataUpdateCoordinator[dict[str, AmazonDevice]]):
         """Return a single sensor, if present."""
         return self.sensors.get(serial_num, {}).get(key)
 
+    def supported_sensor_keys(self, serial_num: str) -> set[str]:
+        """Return the sensor keys the device supports."""
+        return {
+            key
+            for instances in self.data[serial_num].features.values()
+            for feature in instances.values()
+            for key in feature.sensor_keys.values()
+        }
+
     async def _on_sensor_event(self) -> None:
         # Store is mutated in place; just re-render without resetting the poll timer
         self.async_update_listeners()
