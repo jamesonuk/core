@@ -565,6 +565,86 @@ TEST_DEVICE_GLOW_SENSORS: dict[str, AmazonDeviceSensor] = {
     ),
 }
 
+TEST_DEVICE_THERMOSTAT_SN = "thermostat_test_serial_number"
+TEST_DEVICE_THERMOSTAT = AmazonDevice(
+    account_name="Thermostat Test",
+    capabilities=[],
+    device_family="THERMOSTAT",
+    device_type="thermostat_test_device_type",
+    primary_display_category="THERMOSTAT",
+    household_device=False,
+    device_owner_customer_id="amazon_ower_id",
+    device_cluster_members={TEST_DEVICE_THERMOSTAT_SN: "thermostat_test_device_type"},
+    parent_clusters=[],
+    online=True,
+    serial_number=TEST_DEVICE_THERMOSTAT_SN,
+    manufacturer="Amazon",
+    model="Smart Thermostat",
+    hardware_version=None,
+    software_version="thermostat_test_software_version",
+    entity_id="13131313-2424-3535-4646-575757575757",
+    endpoint_id="G1234567890123456789012345678E",
+    notifications_supported=False,
+    notifications={},
+    media_player_supported=False,
+    communication_settings={},
+    voice_control_supported=False,
+    features={
+        "range": {
+            "2": AmazonDeviceFeature(
+                properties=["rangeValue"],
+                supported_operations=["setRangeValue"],
+                supported_modes=[],
+                friendly_name=None,
+                minimum_value=1,
+                maximum_value=5,
+                precision=1,
+                unit_of_measure=None,
+                raw_configuration={},
+                sensor_keys={"rangeValue": "amz_them_active_brightness"},
+            ),
+            "3": AmazonDeviceFeature(
+                properties=["rangeValue"],
+                supported_operations=["setRangeValue"],
+                supported_modes=[],
+                friendly_name=None,
+                minimum_value=1,
+                maximum_value=5,
+                precision=1,
+                unit_of_measure=None,
+                raw_configuration={},
+                sensor_keys={"rangeValue": "amz_therm_inactive_brightness"},
+            ),
+        },
+    },
+    unsupported_features={},
+)
+
+TEST_DEVICE_THERMOSTAT_SENSORS: dict[str, AmazonDeviceSensor] = {
+    "amz_them_active_brightness": AmazonDeviceSensor(
+        name="amz_them_active_brightness",
+        value=4,
+        error=False,
+        error_msg=None,
+        error_type=None,
+        scale=None,
+        feature_name="range",
+        property_name="rangeValue",
+        instance="2",
+    ),
+    "amz_therm_inactive_brightness": AmazonDeviceSensor(
+        name="amz_therm_inactive_brightness",
+        value=1,
+        error=False,
+        error_msg=None,
+        error_type=None,
+        scale=None,
+        feature_name="range",
+        property_name="rangeValue",
+        instance="3",
+    ),
+}
+
 TEST_VOCAL_RECORD_INITIAL = AmazonVocalRecord(
     timestamp=1000,
     history_type="WAKE_WORD_UTTERANCE",
