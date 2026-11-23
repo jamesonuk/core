@@ -14,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .coordinator import AmazonConfigEntry, alexa_api_call
 from .entity import AmazonEntity
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 NUMBERS: Final = (
     NumberEntityDescription(
